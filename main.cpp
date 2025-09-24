@@ -66,15 +66,19 @@ int server() {
         curl_easy_perform(handle);
         curl_easy_cleanup(handle);
 
-        phrased_response response=response_phrase(OrigResponse,path);;
+        phrased_response response=response_phrase(OrigResponse,path);
+        std::string tarballURL=response.phrased_tarballURL;
 
         if (response.notfound==true) {
             res.status=StatusCode::NotFound_404;
             res.set_content("404 Not Found","text/plain");
         }
-        download(response.phrased_tarballURL,tarball_name);
-        //now we need to decompress it.
-        decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
+        else {
+            download(tarballURL,tarball_name);
+            //now we need to decompress it.
+            decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
+        }
+
 
     });
 

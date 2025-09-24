@@ -8,3 +8,4 @@ add_executable(SimjsDeliver main.cpp
         decompressor.cpp
 )
 target_link_libraries(SimjsDeliver curl)
+target_link_libraries(SimjsDeliver archive)
