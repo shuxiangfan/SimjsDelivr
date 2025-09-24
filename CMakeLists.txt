@@ -5,5 +5,6 @@ set(CMAKE_CXX_STANDARD 26)
 
 add_executable(SimjsDeliver main.cpp
         file_download.cpp
+        decompressor.cpp
 )
 target_link_libraries(SimjsDeliver curl)

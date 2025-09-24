@@ -8,14 +8,19 @@
 #define DEFAULT_URL "https://registry.npmjs.org"
 
 
+std::string tarball_name="tarball.tgz";
+std::string decompressed_dir_name="decompressed";
 std::string registryURL;
 
 struct phrased_response {
     std::string entryfilepath; //index.js path
-    std::string phrased_URL; //tarball URL
-    std::string fileview_result;
+    std::string phrased_tarballURL; //tarball URL
+    std::string requested_filepath; // the requested file path(if has)
+    //the path starts with "/"
+
     bool notfound=false;
-    bool filelist=false;
+    bool filelist=false; //if we need to show file list
+    bool specified_file=false;
 };
 
 
@@ -27,7 +32,9 @@ phrased_response response_phrase(std::string OrigResponse,std::string origurl);
 
 std::string fileviewgen(std::string pkgver);
 
-extern void download(std::string url);
+extern void download(std::string url,std::string filename);
+
+extern int decompress(const char* filename, const char* destination);
 
 
 int main() {
@@ -45,8 +52,8 @@ int server() {
     using namespace httplib;
     Server svr;
 
-    svr.Get("/:pkgname", [&](const Request& req, Response &res) {
-        std::string path = req.path_params.at("pkgname");
+    svr.Get("/:urlpath", [&](const Request& req, Response &res) {
+        std::string path = req.path_params.at("urlpath");
         std::string finalurl=registryURL+"/"+path;
 
         curl_global_init(CURL_GLOBAL_ALL);
@@ -65,9 +72,10 @@ int server() {
             res.status=StatusCode::NotFound_404;
             res.set_content("404 Not Found","text/plain");
         }
-        download(response.phrased_URL);
-        //Since the tarball have saved to tarball.tgz, now we need to decompress it.
-        //TODO:Decompress .tgz
+        download(response.phrased_tarballURL,tarball_name);
+        //now we need to decompress it.
+        decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
+
     });
 
     svr.listen("0.0.0.0", 8080);
@@ -82,20 +90,23 @@ extern size_t WriteResponse(char *ptr, size_t size, size_t nmemb, void *userdata
 }
 
 phrased_response response_phrase(std::string OrigResponse,std::string origurl) {
-    using json=nlohmann::json;
+
     phrased_response result;
+    std::string pkgver;
+
+    using json=nlohmann::json;
     json orig_data =json::parse(OrigResponse);
 
-    std::regex findpkgver("(?<=@).*");
-    std::regex fileview(".*/$");
+    std::regex findpkgver("@([^/]+)");
+    std::regex filepath("^[^@]+@[^/]+(/.*)$");
     std::smatch match;
-    std::string pkgver;
+
 
     if(orig_data.at("error")=="Not found") {
         result.notfound=true;
     }
-    else if (std::regex_search(origurl,match,findpkgver)) {
-        pkgver=match.str(0);
+    else if (std::regex_match(origurl, match, findpkgver)) {
+        pkgver=match[1];
 
     }
     else {
@@ -104,14 +115,23 @@ phrased_response response_phrase(std::string OrigResponse,std::string origurl) {
     }
 
 
-    if (std::regex_search(origurl,match,fileview)) {
-        //TODO:gen file view
-        //TODO: directly return the file view flag and file view content, do not excute the following
+    if (std::regex_match(origurl,match,filepath)) {
+        std::string requested_file_path = match[1];
+        if (requested_file_path=="/") {
+            result.filelist=true;
+            //we should return file list
+        }
+        else {
+            //returm the requested file
+            result.requested_filepath=requested_file_path;
+            result.specified_file=true;
+        }
     }
 
 
     json pkgjson=orig_data["versions"][pkgver];
 
+    //find the entry file path
     if (pkgjson.contains("jsdelivr")) {
         result.entryfilepath=pkgjson["jsdelivr"];
     }
@@ -132,7 +152,8 @@ phrased_response response_phrase(std::string OrigResponse,std::string origurl) {
         result.notfound=true;
     }
 
-    result.phrased_URL=pkgjson["dist"].at("tarball");
+    //find the tarball file link
+    result.phrased_tarballURL=pkgjson["dist"].at("tarball");
 
     return result;
 }
