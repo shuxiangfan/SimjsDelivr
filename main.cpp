@@ -191,8 +191,9 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     json pkgjson;
     if (orig_data.contains("versions") && orig_data["versions"].contains(pkgver)) {
         pkgjson = orig_data["versions"][pkgver];
+        spdlog::info("The pkgjson is hit");
     } else {
-        spdlog::error("versions[{}] not found in registry response", pkgver);
+        spdlog::error("versions[{}] not present in response", pkgver);
         result.notfound = true;
         return result;
     }
@@ -215,12 +216,18 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     else if (pkgjson.contains("main")) {
         result.entryfilepath=pkgjson["main"];
     }
+    else if (pkgjson.contains("bin") && pkgjson["bin"].contains("js")) {
+        result.entryfilepath=pkgjson["bin"]["js"];
+    }
     else {
         result.notfound=true;
     }
 
-    //find the tarball file link
-    result.parsed_tarballURL=pkgjson["dist"].at("tarball");
+    if (pkgjson.contains("dist") && pkgjson["dist"].contains("tarball")) {
+        //find the tarball file link
+        result.parsed_tarballURL=pkgjson["dist"]["tarball"];
+    }
+
 
     return result;
 }
