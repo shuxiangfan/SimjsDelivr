@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 #include<nlohmann/json.hpp>
 #include <regex>
+#include <spdlog/spdlog.h>//TODO: using log library to debug
 
 
 #define DEFAULT_URL "https://registry.npmjs.org"
@@ -36,6 +37,8 @@ extern void download(std::string url,std::string filename);
 
 extern int decompress(const char* filename, const char* destination);
 
+extern std::string get_content_type(std::string file_path);
+
 
 int main() {
     if (std::getenv("REGISTRY") == nullptr) {
@@ -52,8 +55,8 @@ int server() {
     using namespace httplib;
     Server svr;
 
-    svr.Get("/:urlpath", [&](const Request& req, Response &res) {
-        std::string path = req.path_params.at("urlpath");
+    svr.Get(".", [&](const Request& req, Response &res) {
+        std::string path = req.target;
         std::string finalurl=registryURL+"/"+path;
 
         curl_global_init(CURL_GLOBAL_ALL);
@@ -77,6 +80,19 @@ int server() {
             download(tarballURL,tarball_name);
             //now we need to decompress it.
             decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
+            //decompressed_dir_name/package/(actual package content)
+            if (response.specified_file==false && response.filelist==false) {
+                std::string index_file_path=decompressed_dir_name+"/package/"+response.entryfilepath;
+                res.set_file_content(index_file_path,get_content_type(index_file_path));
+            }
+            else if (response.specified_file==true && response.filelist==false) {
+                std::string file_path=decompressed_dir_name+"/package"+response.requested_filepath;
+                res.set_file_content(file_path,get_content_type(file_path));
+            }
+            else if (response.specified_file==false && response.filelist==true) {
+                std::string root=decompressed_dir_name+"/package/";
+                //TODO:Generate file list view like nginx
+            }
         }
 
 
