@@ -128,7 +128,7 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
 
     parsed_response result;
     std::string pkgver;
-    spdlog::info("Entered phrase url function!\n In phrase: origurl={}",origurl);
+    spdlog::info("Entered parse url function!\n In parse: origurl={}",origurl);
     spdlog::info("In parse: Registry response (first 200 chars): {}", OrigResponse.substr(0, 200));
 
 
@@ -151,18 +151,18 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
 
     if(orig_data.at("error")=="Not found") {
         result.notfound=true;
-        spdlog::info("In phrase: notfound flag=true");
+        spdlog::info("In parse: notfound flag=true");
     }
     else if (std::regex_search(origurl, match, findpkgver)) {
         pkgver=match[1];
-        spdlog::info("In phrase: pkgver={}",pkgver);
+        spdlog::info("In parse: pkgver={}",pkgver);
 
 
     }
     else {
-        spdlog::info("In phrase: try to find latest");
+        spdlog::info("In parse: try to find latest");
         pkgver=orig_data["dist-tags"]["latest"];
-        spdlog::info("In phrase: pkgver={}",pkgver);
+        spdlog::info("In parse: pkgver={}",pkgver);
 
     }
 
@@ -176,7 +176,7 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
         else {
             //returm the requested file
             result.requested_filepath=requested_file_path;
-            spdlog::info("In phrase: requested file path={}",requested_file_path);
+            spdlog::info("In parse: requested file path={}",requested_file_path);
             result.specified_file=true;
         }
     }
