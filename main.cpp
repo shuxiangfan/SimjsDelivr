@@ -135,7 +135,7 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     using json=nlohmann::json;
     json orig_data;
     try {
-        json orig_data =json::parse(OrigResponse);
+        orig_data =json::parse(OrigResponse);
         spdlog::info("In parse: JSON parsed!");
     }catch (const std::exception &e) {
         spdlog::error("JSON parse failed: {}", e.what());
@@ -149,7 +149,7 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     std::smatch match;
 
 
-    if(orig_data.at("error")=="Not found") {
+    if(orig_data.contains("error") && orig_data["error"] == "Not found") {
         result.notfound=true;
         spdlog::info("In parse: notfound flag=true");
     }
@@ -161,7 +161,13 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     }
     else {
         spdlog::info("In parse: try to find latest");
-        pkgver=orig_data["dist-tags"]["latest"];
+        if (orig_data.contains("dist-tags") && orig_data["dist-tags"].contains("latest")) {
+            pkgver = orig_data["dist-tags"]["latest"].get<std::string>();
+        } else {
+            spdlog::error("dist-tags.latest not found in registry response");
+            result.notfound = true;
+            return result;
+        }
         spdlog::info("In parse: pkgver={}",pkgver);
 
     }
@@ -170,6 +176,7 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     if (std::regex_match(origurl,match,filepath)) {
         std::string requested_file_path = match[1];
         if (requested_file_path=="/") {
+            spdlog::info("In parse: We should return a file list!");
             result.filelist=true;
             //we should return file list
         }
@@ -181,8 +188,15 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
         }
     }
 
+    json pkgjson;
+    if (orig_data.contains("versions") && orig_data["versions"].contains(pkgver)) {
+        pkgjson = orig_data["versions"][pkgver];
+    } else {
+        spdlog::error("versions[{}] not found in registry response", pkgver);
+        result.notfound = true;
+        return result;
+    }
 
-    json pkgjson=orig_data["versions"][pkgver];
 
     //find the entry file path
     if (pkgjson.contains("jsdelivr")) {
