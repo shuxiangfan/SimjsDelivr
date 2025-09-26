@@ -30,12 +30,12 @@ int server() {
         if (!path.empty() && path.front() == '/') {
             path.erase(0, 1);
         }
+        std::regex cut("([@/].*)");
+        std::string path_for_get_response=std::regex_replace(path,cut,"");
+        spdlog::info("\n");
+        spdlog::info("The requested URL path={}",path);
 
-        spdlog::info("\n\nThe requested URL path={}",path);
-
-        std::regex pattern("@.*");
-        std::string finalurl=registryURL+"/"+path;
-        finalurl=std::regex_replace(finalurl,pattern,"");
+        std::string finalurl=registryURL+"/"+path_for_get_response;
         spdlog::info("the request URL={}",finalurl);
 
         curl_global_init(CURL_GLOBAL_ALL);

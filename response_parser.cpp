@@ -44,11 +44,11 @@ parsed_response response_parse(const std::string& OrigResponse,std::string origu
 
     }
     else {
-        //spdlog::info("In parse: try to find latest");
+        spdlog::info("In parse: try to find latest");
         if (orig_data.contains("dist-tags") && orig_data["dist-tags"].contains("latest")) {
             pkgver = orig_data["dist-tags"]["latest"].get<std::string>();
         } else {
-            //spdlog::error("dist-tags.latest not found in registry response");
+            spdlog::error("dist-tags.latest not found in registry response");
             result.notfound = true;
             return result;
         }
@@ -58,7 +58,7 @@ parsed_response response_parse(const std::string& OrigResponse,std::string origu
 
     if (std::regex_match(origurl,match,filepath)) {
         std::string requested_file_path = match[1];
-        //spdlog::info("In parse: We found :{} after the pkgname@pkgver",requested_file_path);
+        spdlog::info("In parse: Found :{} after the pkgname@pkgver",requested_file_path);
         if (origurl.back()=='/') {
             //spdlog::info("In parse: We should return a file list!");
             result.filelist=true;
@@ -67,7 +67,7 @@ parsed_response response_parse(const std::string& OrigResponse,std::string origu
         else {
             //returm the requested file
             result.requested_filepath=requested_file_path;
-            //spdlog::info("In parse: requested file path={}",requested_file_path);
+            spdlog::info("In parse: requested file path={}",requested_file_path);
             result.specified_file=true;
         }
     }
