@@ -12,6 +12,8 @@
 std::string tarball_name="tarball.tgz";
 std::string decompressed_dir_name="decompressed";
 std::string registryURL;
+std::string pkgname;
+std::string pkgver;
 
 struct parsed_response {
     std::string entryfilepath; //index.js path
@@ -36,6 +38,8 @@ extern void download(const std::string& url,const std::string& filename);
 extern int decompress(const char* filename, const char* destination);
 
 extern std::string get_content_type(std::string file_path);
+
+extern std::string filelist(std::string dirpath);
 
 
 int main() {
@@ -79,6 +83,9 @@ int server() {
 
         parsed_response response=response_parse(OrigResponse,path);
         std::string tarballURL=response.parsed_tarballURL;
+
+        tarball_name=pkgname+"@"+pkgver+".tgz";
+        decompressed_dir_name=pkgname+pkgver+"_decompresed";
 
         spdlog::info("The tarballURL={}",response.parsed_tarballURL);
         spdlog::info("The entryfilepath={}",response.entryfilepath);
@@ -125,7 +132,6 @@ extern size_t WriteResponse(char *ptr, size_t size, size_t nmemb, void *userdata
 parsed_response response_parse(const std::string& OrigResponse,std::string origurl) {
 
     parsed_response result;
-    std::string pkgver;
     spdlog::info("Entered parse url function!\n In parse: origurl={}",origurl);
     spdlog::info("In parse: Registry response (first 200 chars): {}", OrigResponse.substr(0, 200));
 
@@ -218,9 +224,6 @@ parsed_response response_parse(const std::string& OrigResponse,std::string origu
     else if (pkgjson.contains("main")) {
         result.entryfilepath=pkgjson["main"];
     }
-    else if (pkgjson.contains("bin") && pkgjson["bin"].contains("js")) {
-        result.entryfilepath=pkgjson["bin"]["js"];
-    }
     else {
         result.notfound=true;
     }
@@ -230,6 +233,10 @@ parsed_response response_parse(const std::string& OrigResponse,std::string origu
         result.parsed_tarballURL=pkgjson["dist"]["tarball"];
     }
 
+   if (orig_data.contains("name")) {
+       pkgname=orig_data["name"];
+       spdlog::info("In parse: pkgname={}",pkgname);
+   }
 
     return result;
 }
