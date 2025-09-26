@@ -28,8 +28,8 @@ parsed_response response_parse(const std::string& OrigResponse,std::string origu
 
 
 
-    std::regex findpkgver("@([^/]+)");
-    std::regex filepath("^[^@/]+(?:@[^/]+)?(/.*)$"); //Thank you gpt-5!
+    std::regex findpkgver("@([^/]+)"); // only take out pkgver
+    std::regex filepath("^[^@/]+(?:@[^/]+)?(/.*)$"); //Thank you gpt-5! This removes everything after pkgname@pkgver, leaving only /path/to/file
     std::smatch match;
 
 

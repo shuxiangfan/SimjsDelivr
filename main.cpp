@@ -5,8 +5,8 @@
 
 #define DEFAULT_URL "https://registry.npmjs.org"
 
-std::string tarball_name="tarball.tgz";
-std::string decompressed_dir_name="decompressed";
+std::string tarball_name;
+std::string decompressed_dir_name;
 std::string registryURL;
 
 int main() {
@@ -30,7 +30,8 @@ int server() {
         if (!path.empty() && path.front() == '/') {
             path.erase(0, 1);
         }
-        std::regex cut("([@/].*)");
+        std::regex cut("([@/].*)"); //This removes all contents after @xxxx, leaving only pkgname
+        //Maybe we can use path_for_get_response for pkgname!
         std::string path_for_get_response=std::regex_replace(path,cut,"");
         spdlog::info("\n");
         spdlog::info("The requested URL path={}",path);
