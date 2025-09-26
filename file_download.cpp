@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <curl/curl.h>
-#include <stdlib.h>
+#include <cstdlib>
 
-void download(std::string url,std::string filename) {
+void download(const std::string& url,const std::string& filename) {
     FILE*fp=fopen(filename.c_str(),"wb");
     if (!fp) {std::cout<<"File open error";exit(EXIT_FAILURE);}  //im lazy to deal with all the s**t. just once
 

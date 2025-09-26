@@ -6,14 +6,14 @@
 #include <iostream>
 #include <string>
 
-static int copy_data(struct archive *ar, struct archive *aw);
+static long copy_data(struct archive *ar, struct archive *aw);
 
 int decompress(const char* filename, const char* destination) {
     struct archive *a;
     struct archive *ext;
     struct archive_entry *entry;
     int flags;
-    int r;
+    long r;
 
     flags = ARCHIVE_EXTRACT_TIME |
             ARCHIVE_EXTRACT_PERM |
@@ -66,11 +66,11 @@ int decompress(const char* filename, const char* destination) {
     return 0;
 }
 
-static int copy_data(struct archive *ar, struct archive *aw) {
+static long copy_data(struct archive *ar, struct archive *aw) {
     const void *buff;
     size_t size;
     la_int64_t offset;
-    int r;
+    long r;
 
     while (true) {
         r = archive_read_data_block(ar, &buff, &size, &offset);

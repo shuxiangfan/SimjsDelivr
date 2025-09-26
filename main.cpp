@@ -29,11 +29,9 @@ int server();
 
 size_t WriteResponse(char *ptr, size_t size, size_t nmemb, void *userdata);
 
-parsed_response response_parse(std::string OrigResponse,std::string origurl);
+parsed_response response_parse(const std::string& OrigResponse,std::string origurl);
 
-std::string fileviewgen(std::string pkgver);
-
-extern void download(std::string url,std::string filename);
+extern void download(const std::string& url,const std::string& filename);
 
 extern int decompress(const char* filename, const char* destination);
 
@@ -62,7 +60,7 @@ int server() {
             path.erase(0, 1);
         }
 
-        spdlog::info("The requested URL path={}",path);
+        spdlog::info("\n\nThe requested URL path={}",path);
 
         std::regex pattern("@.*");
         std::string finalurl=registryURL+"/"+path;
@@ -120,11 +118,11 @@ int server() {
 
 extern size_t WriteResponse(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
-    ((std::string*)userdata)->append((char*)ptr, size * nmemb);
+    static_cast<std::string *>(userdata)->append((char*)ptr, size * nmemb);
     return size * nmemb;
 }
 
-parsed_response response_parse(std::string OrigResponse,std::string origurl) {
+parsed_response response_parse(const std::string& OrigResponse,std::string origurl) {
 
     parsed_response result;
     std::string pkgver;
@@ -175,6 +173,7 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
 
     if (std::regex_match(origurl,match,filepath)) {
         std::string requested_file_path = match[1];
+        spdlog::info("In parse: We found :{} after the pkgname@pkgver",requested_file_path);
         if (requested_file_path=="/") {
             spdlog::info("In parse: We should return a file list!");
             result.filelist=true;
@@ -191,22 +190,25 @@ parsed_response response_parse(std::string OrigResponse,std::string origurl) {
     json pkgjson;
     if (orig_data.contains("versions") && orig_data["versions"].contains(pkgver)) {
         pkgjson = orig_data["versions"][pkgver];
-        spdlog::info("The pkgjson is hit");
+        spdlog::info("In parse: The pkgjson is hit");
     } else {
         spdlog::error("versions[{}] not present in response", pkgver);
         result.notfound = true;
         return result;
     }
-
+    spdlog::info("In parse: Now outside the version find");
 
     //find the entry file path
     if (pkgjson.contains("jsdelivr")) {
+        spdlog::info("In parse: jsdelivr case");
         result.entryfilepath=pkgjson["jsdelivr"];
+        spdlog::info("In parse: The extryfilepath:{}",result.entryfilepath);
+
     }
     else if (pkgjson.contains("exports") && pkgjson["exports"].contains(".")) {
         json exports=pkgjson["exports"];
-        if (exports.contains("default")) {
-            result.entryfilepath=exports["default"];
+        if (exports["."].contains("default")) {
+            result.entryfilepath=exports["."]["default"];
         }
         else {
             result.entryfilepath=exports["."];
