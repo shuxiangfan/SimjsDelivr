@@ -1,22 +1,26 @@
 #include "main.h"
+#include <thread>
+#include <filesystem>
 #include<httplib.h>
 #include <curl/curl.h>
 #include <regex>
 
-#define DEFAULT_URL "https://registry.npmjs.org"
-
-std::string tarball_name;
-std::string decompressed_dir_name;
-std::string registryURL;
-
 int main() {
+
     if (std::getenv("REGISTRY") == nullptr) {
         registryURL = DEFAULT_URL;
     }
     else {
+        spdlog::info("main: Using user set REGISTRY={}",std::getenv("REGISTRY"));
         registryURL= std::getenv("REGISTRY");
     }
+
+    std::filesystem::create_directory((std::filesystem::path)"cache");
+    std::thread thr(call_cache_clean);
+    thr.detach();
+
     server();
+
     return 0;
 }
 
@@ -52,8 +56,8 @@ int server() {
         parsed_response response=response_parse(OrigResponse,path);
         std::string tarballURL=response.parsed_tarballURL;
 
-        tarball_name=pkgname+"@"+pkgver+".tgz";
-        decompressed_dir_name=pkgname+pkgver+"_decompresed";
+        tarball_name="cache/"+pkgname+"@"+pkgver+".tgz";
+        decompressed_dir_name="cache/"+pkgname+pkgver+"_decompresed";
 
         spdlog::info("The tarballURL={}",response.parsed_tarballURL);
         spdlog::info("The entryfilepath={}",response.entryfilepath);
@@ -65,10 +69,17 @@ int server() {
             res.set_content("404 Not Found","text/plain");
         }
         else {
-            download(tarballURL,tarball_name);
-            //now we need to decompress it.
-            decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
-            //decompressed_dir_name/package/(actual package content)
+            if (!is_in_cache()) {
+                download(tarballURL,tarball_name);
+                //now we need to decompress it.
+                decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
+                //decompressed_dir_name/package/(actual package content)
+                std::remove(tarball_name.c_str());
+            }
+            else {
+                cache_timestamp_upd();
+            }
+
             if (response.specified_file==false && response.filelist==false) {
                 std::string index_file_path=decompressed_dir_name+"/package/"+response.entryfilepath;
                 res.set_file_content(index_file_path,get_content_type(index_file_path));
@@ -83,10 +94,7 @@ int server() {
                 res.set_content(listview,"text/html");
             }
         }
-
-
     });
-
     svr.listen("0.0.0.0", 8080);
     return 0;
 }

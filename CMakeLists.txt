@@ -10,6 +10,7 @@ add_executable(SimjsDeliver main.cpp
         filelist.cpp
         main.h
         response_parser.cpp
+        cache_system.cpp
 )
 target_link_libraries(SimjsDeliver curl)
 target_link_libraries(SimjsDeliver archive)
