@@ -6,8 +6,8 @@
 #include <filesystem>
 
 #define DEFAULT_URL "https://registry.npmjs.org"
-#define CACHE_EXPIRE_TIME_IN_SECONDS 5
-#define CACHE_CHECK_DURAION_IN_SECONDS 10L
+#define CACHE_EXPIRE_TIME_IN_SECONDS 1209600 //cache expires in two weeks
+#define CACHE_CHECK_DURAION_IN_SECONDS 7200L //check cache library every two hours
 
 struct parsed_response {
     std::string entryfilepath; //index.js path

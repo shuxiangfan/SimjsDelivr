@@ -1,6 +1,4 @@
 #include "main.h"
-
-#include <future>
 #include <thread>
 #include <curl/curl.h>
 #include <regex>
@@ -91,8 +89,8 @@ int server() {
             else if (response.specified_file==false && response.filelist==true) {
                 std::string new_root=decompressed_dir_name+"/package/";
                 std::string listview = filelist(new_root,pkgname);
-                //res.set_content(listview,"text/html");
-                send_and_delete_file(res,listview,"text/html");
+                res.set_content(listview,"text/html");
+                std::filesystem::remove_all(decompressed_dir_name);
             }
         }
     });
