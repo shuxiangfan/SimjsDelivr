@@ -30,7 +30,7 @@ int decompress(const char* filename, const char* destination) {
     archive_write_disk_set_standard_lookup(ext);
 
     if ((r = archive_read_open_filename(a, filename, 10240))) {
-        spdlog::error("archive_read_open_filename() failed");
+        spdlog::error("Decompressor: archive_read_open_filename() failed");
         return 1;
     }
 
@@ -39,7 +39,7 @@ int decompress(const char* filename, const char* destination) {
         if (r == ARCHIVE_EOF)
             break;
         if (r < ARCHIVE_OK)
-            std::cerr << archive_error_string(a) << "\n";
+            spdlog::error("Decompressor:{}",archive_error_string(a));
         if (r < ARCHIVE_WARN)
             return 1;
 
@@ -48,15 +48,15 @@ int decompress(const char* filename, const char* destination) {
 
         r = archive_write_header(ext, entry);
         if (r < ARCHIVE_OK)
-            std::cerr << archive_error_string(ext) << "\n";
+            spdlog::error("Decompressor: {}",archive_error_string(ext));
         else if (archive_entry_size(entry) > 0) {
             r = copy_data(a, ext);
             if (r < ARCHIVE_OK)
-                std::cerr << archive_error_string(ext) << "\n";
+                spdlog::error("Decompressor: {}",archive_error_string(ext));
         }
         r = archive_write_finish_entry(ext);
         if (r < ARCHIVE_OK)
-            std::cerr << archive_error_string(ext) << "\n";
+            spdlog::error("Decompressor: {}",archive_error_string(ext));
     }
 
     archive_read_close(a);
@@ -82,7 +82,7 @@ static long copy_data(struct archive *ar, struct archive *aw) {
 
         r = archive_write_data_block(aw, buff, size, offset);
         if (r < ARCHIVE_OK) {
-            std::cerr << archive_error_string(aw) << "\n";
+            spdlog::error("Decompressor: copy_data() failed:{}",archive_error_string(aw));
             return r;
         }
     }
