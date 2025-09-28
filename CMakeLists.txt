@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 4.0)
-project(SimjsDeliver)
+project(SimjsDelivr)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(SimjsDeliver main.cpp
+add_executable(SimjsDelivr main.cpp
         file_net_stream.cpp
         decompressor.cpp
         get_content_type.cpp
@@ -12,6 +12,7 @@ add_executable(SimjsDeliver main.cpp
         response_parser.cpp
         cache_system.cpp
 )
-target_link_libraries(SimjsDeliver curl)
-target_link_libraries(SimjsDeliver archive)
-target_link_libraries(SimjsDeliver fmt)
+target_link_libraries(SimjsDelivr curl)
+target_link_libraries(SimjsDelivr archive)
+target_link_libraries(SimjsDelivr fmt)
+target_compile_options(SimjsDelivr PUBLIC "-O2" "-flto=auto")
