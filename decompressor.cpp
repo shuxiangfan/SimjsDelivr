@@ -5,6 +5,7 @@
 #include <archive_entry.h>
 #include <iostream>
 #include <string>
+#include <spdlog/spdlog.h>
 
 static long copy_data(struct archive *ar, struct archive *aw);
 
@@ -29,7 +30,7 @@ int decompress(const char* filename, const char* destination) {
     archive_write_disk_set_standard_lookup(ext);
 
     if ((r = archive_read_open_filename(a, filename, 10240))) {
-        std::cerr << "archive_read_open_filename() failed\n";
+        spdlog::error("archive_read_open_filename() failed");
         return 1;
     }
 

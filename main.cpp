@@ -35,10 +35,10 @@ int server() {
         //Maybe we can use path_for_get_response for pkgname!
         std::string path_for_get_response=std::regex_replace(path,cut,"");
         spdlog::info("\n");
-        spdlog::info("The requested URL path={}",path);
+        //spdlog::info("The requested URL path={}",path);
 
         std::string finalurl=registryURL+"/"+path_for_get_response;
-        spdlog::info("the request URL={}",finalurl);
+        //spdlog::info("the request URL={}",finalurl);
 
         curl_global_init(CURL_GLOBAL_ALL);
         CURL* handle=curl_easy_init();
@@ -56,9 +56,9 @@ int server() {
         tarball_name="cache/"+pkgname+"@"+pkgver+".tgz";
         decompressed_dir_name="cache/"+pkgname+pkgver+"_decompresed";
 
-        spdlog::info("The tarballURL={}",response.parsed_tarballURL);
-        spdlog::info("The entryfilepath={}",response.entryfilepath);
-        spdlog::info("The notfound flag={}",response.notfound);
+        //spdlog::info("The tarballURL={}",response.parsed_tarballURL);
+        //spdlog::info("The entryfilepath={}",response.entryfilepath);
+        //spdlog::info("The notfound flag={}",response.notfound);
 
 
         if (response.notfound==true) {
