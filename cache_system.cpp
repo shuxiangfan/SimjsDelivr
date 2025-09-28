@@ -28,11 +28,8 @@ static std::filesystem::file_time_type from_unix_timestamp(int64_t unix_time) {/
 }
 
 
-static const auto p1=std::chrono::system_clock::now();
-int64_t current_time=std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
-
 bool is_in_cache() {
-    std::filesystem::directory_entry entry{decompressed_dir_name};
+    std::filesystem::directory_entry entry{tarball_name};
     if (entry.exists()) {
         spdlog::info("cache system: Hit!");
         return true;
@@ -42,25 +39,31 @@ bool is_in_cache() {
 }
 
 void cache_timestamp_upd() {
-    std::filesystem::last_write_time(decompressed_dir_name,from_unix_timestamp(current_time));
+    const auto p1=std::chrono::system_clock::now();
+    int64_t current_time=std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
+    std::filesystem::last_write_time(tarball_name,from_unix_timestamp(current_time));
     spdlog::info("cache system: Cache file expire date extended!!");
 }
 
-void check_cache() {
-    std::filesystem::directory_entry entry{"cache"};
-    if (entry.exists()) {
-        for (auto const& dirs : std::filesystem::directory_iterator{"cache"}) {
-            int64_t entry_last_write_time = to_unix_timestamp(std::filesystem::last_write_time(dirs));
-            if ((current_time - entry_last_write_time) > CACHE_EXPIRE_TIME_IN_SECONDS) {
-                std::remove(dirs.path().c_str());
-                spdlog::info("cache system: Expired dir removed!");
-            }
-        }
-    }
-}
 void call_cache_clean() {
     while (true) {
         check_cache();
         std::this_thread::sleep_for(std::chrono::seconds(CACHE_CHECK_DURAION_IN_SECONDS));
     }
 }
+
+void check_cache() {
+    const auto p1=std::chrono::system_clock::now();
+    int64_t current_time=std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
+    std::filesystem::directory_entry entry{"cache"};
+    if (entry.exists()) {
+        for (auto const& dirs : std::filesystem::directory_iterator{"cache"}) {
+            int64_t entry_last_write_time = to_unix_timestamp(std::filesystem::last_write_time(dirs));
+            if ((current_time - entry_last_write_time) > CACHE_EXPIRE_TIME_IN_SECONDS) {
+                std::remove(dirs.path().c_str());
+                spdlog::info("cache system: Expired tarball removed!");
+            }
+        }
+    }
+}
+

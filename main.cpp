@@ -1,7 +1,7 @@
 #include "main.h"
+
+#include <future>
 #include <thread>
-#include <filesystem>
-#include<httplib.h>
 #include <curl/curl.h>
 #include <regex>
 
@@ -18,7 +18,6 @@ int main() {
     std::filesystem::create_directory((std::filesystem::path)"cache");
     std::thread thr(call_cache_clean);
     thr.detach();
-
     server();
 
     return 0;
@@ -71,27 +70,29 @@ int server() {
         else {
             if (!is_in_cache()) {
                 download(tarballURL,tarball_name);
-                //now we need to decompress it.
-                decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
-                //decompressed_dir_name/package/(actual package content)
-                std::remove(tarball_name.c_str());
-            }
+                }
             else {
                 cache_timestamp_upd();
             }
+            //now we need to decompress it.
+            decompress(tarball_name.c_str(),decompressed_dir_name.c_str());
+            //cache/decompressed_dir_name/package/(actual package content)
 
             if (response.specified_file==false && response.filelist==false) {
                 std::string index_file_path=decompressed_dir_name+"/package/"+response.entryfilepath;
-                res.set_file_content(index_file_path,get_content_type(index_file_path));
+                //res.set_file_content(index_file_path,get_content_type(index_file_path));
+                send_and_delete_file(res,index_file_path,get_content_type(index_file_path));
             }
             else if (response.specified_file==true && response.filelist==false) {
                 std::string file_path=decompressed_dir_name+"/package"+response.requested_filepath;
-                res.set_file_content(file_path,get_content_type(file_path));
+                //res.set_file_content(file_path,get_content_type(file_path));
+                send_and_delete_file(res,file_path,get_content_type(file_path));
             }
             else if (response.specified_file==false && response.filelist==true) {
                 std::string new_root=decompressed_dir_name+"/package/";
                 std::string listview = filelist(new_root,pkgname);
-                res.set_content(listview,"text/html");
+                //res.set_content(listview,"text/html");
+                send_and_delete_file(res,listview,"text/html");
             }
         }
     });

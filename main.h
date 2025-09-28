@@ -2,6 +2,8 @@
 #define SIMJSDELIVER_MAIN_H
 
 #include <spdlog/spdlog.h>
+#include <httplib.h>
+#include <filesystem>
 
 #define DEFAULT_URL "https://registry.npmjs.org"
 #define CACHE_EXPIRE_TIME_IN_SECONDS 5
@@ -35,6 +37,7 @@ extern bool is_in_cache();
 extern void cache_timestamp_upd();
 extern void check_cache();
 extern void call_cache_clean();
+extern void send_and_delete_file(httplib::Response& res, const std::string& filepath, const std::string& content_type);
 
 #endif //SIMJSDELIVER_MAIN_H
 

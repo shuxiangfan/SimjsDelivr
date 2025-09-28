@@ -4,7 +4,7 @@ project(SimjsDeliver)
 set(CMAKE_CXX_STANDARD 26)
 
 add_executable(SimjsDeliver main.cpp
-        file_download.cpp
+        file_net_stream.cpp
         decompressor.cpp
         get_content_type.cpp
         filelist.cpp
