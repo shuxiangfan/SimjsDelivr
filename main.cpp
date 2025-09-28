@@ -34,7 +34,7 @@ int server() {
         std::regex cut("([@/].*)"); //This removes all contents after @xxxx, leaving only pkgname
         //Maybe we can use path_for_get_response for pkgname!
         std::string path_for_get_response=std::regex_replace(path,cut,"");
-        spdlog::info("\n");
+        spdlog::info("-------------cut here-------------");
         //spdlog::info("The requested URL path={}",path);
 
         std::string finalurl=registryURL+"/"+path_for_get_response;
