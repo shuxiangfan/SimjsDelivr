@@ -6,6 +6,7 @@
 #include <filesystem>
 
 #define DEFAULT_URL "https://registry.npmjs.org"
+#define LISTEN_PORT 8080
 #define CACHE_EXPIRE_TIME_IN_SECONDS 1209600 //cache expires in two weeks
 #define CACHE_CHECK_DURAION_IN_SECONDS 7200L //check cache library every two hours
 
@@ -20,14 +21,20 @@ struct parsed_response {
     bool specified_file=false;
 };
 
-inline std::string pkgname;
-inline std::string pkgver;
+struct parsed_url {
+    std::string pkgname;
+    std::string pkgver;
+    std::string filepath;
+};
+
 inline std::string tarball_name;
 inline std::string decompressed_dir_name;
 inline std::string registryURL;
+inline std::string pkgname;
+inline std::string pkgver;
 
 extern size_t WriteResponse(char *ptr, size_t size, size_t nmemb, void *userdata);
-extern parsed_response response_parse(const std::string& OrigResponse,std::string origurl);
+parsed_response response_parse(const std::string& OrigResponse,std::string target,parsed_url url);
 extern void download(const std::string& url,const std::string& filename);
 extern int decompress(const char* filename, const char* destination);
 extern std::string get_content_type(std::string file_path);
